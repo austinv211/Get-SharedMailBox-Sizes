@@ -76,7 +76,7 @@ function Get-SharedMailBoxData () {
     return $resultArray
 }
 
-$test = Get-SharedMailBoxData -filePath .\SharedmailBoxes.txt
+Get-SharedMailBoxData -filePath .\SharedmailBoxes.txt | Export-Csv -NoTypeInformation -Path .\mailboxDataResults.csv
 
 
 
