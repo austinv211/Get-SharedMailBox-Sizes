@@ -70,8 +70,9 @@ function Get-SharedMailBoxData () {
         #if archive status is active get the total size
         if ($archiveStatus -eq "Active") {
             $archiveSize = Get-Mailbox -Identity $name -Archive -IncludeInactiveMailbox | 
-                           Get-MailboxStatistics |
-                           Select @{Name="ArchiveSize";Expression={$_.TotalItemSize}}
+                           Get-MailboxStatistics -Archive|
+                           Select @{Name="ArchiveSize";Expression={$_.TotalItemSize}} | 
+                           Select -ExpandProperty ArchiveSize
         }
 
         #add the results to the object
