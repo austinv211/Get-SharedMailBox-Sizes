@@ -52,13 +52,35 @@ function Get-SharedMailBoxData () {
         #save the name
         $name = $mailbox
 
-        $size = Get-Mailbox -Identity $name -IncludeInactiveMailbox | 
-                Get-MailboxStatistics | 
-                Select -ExpandProperty TotalItemSize
+        #get all properyies for the mailbox incase we want to add more later
+        $getMailbox = Get-Mailbox -Identity $name -IncludeInactiveMailbox
+
+        #size from mailbox statistics
+        $size = $getMailbox | Get-MailboxStatistics | Select -ExpandProperty TotalItemSize
+
+        #props to get from mailbox
+        $props = $getMailbox | Select ArchiveStatus, ArchiveName, IsInactiveMailbox
+
+        #save as variables
+        $isInactive = $props | Select -ExpandProperty IsInactiveMailbox
+        $archiveStatus = $props | Select -ExpandProperty ArchiveStatus
+        $archiveName = $props | Select -ExpandProperty ArchiveName
+        $archiveSize = ""
+
+        #if archive status is active get the total size
+        if ($archiveStatus -eq "Active") {
+            $archiveSize = Get-Mailbox -Identity $name -Archive -IncludeInactiveMailbox | 
+                           Get-MailboxStatistics |
+                           Select @{Name="ArchiveSize";Expression={$_.TotalItemSize}}
+        }
 
         #add the results to the object
         $obj | Add-Member -Name "MailboxName" -Value $name -MemberType NoteProperty
+        $obj | Add-Member -Name "IsInactiveMailbox" -Value $isInactive -MemberType NoteProperty
         $obj | Add-Member -Name "TotalItemSize" -Value $size -MemberType NoteProperty
+        $obj | Add-Member -Name "ArchiveStatus" -Value $archiveStatus -MemberType NoteProperty
+        $obj | Add-Member -Name "ArchiveName" -Value $archiveName -MemberType NoteProperty
+        $obj | Add-Member -Name "ArchiveSize" -Value $archiveSize -MemberType NoteProperty
 
         #add the object to the result array
         $resultArray += $obj
